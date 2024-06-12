@@ -19,7 +19,7 @@ from torchsummary import summary
 # 设备配置
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# 数据归一化
+# 数据归一化    Нормализовать данные
 transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
     transforms.RandomHorizontalFlip(),
@@ -31,7 +31,7 @@ transform_test = transforms.Compose([
     # transforms.Normalize(mean, std)
 ])
 
-# 读取 CIFAR-10 数据集
+# 读取 CIFAR-10 数据集    Чтение данных
 train_set = CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 test_set = CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 
@@ -42,12 +42,12 @@ std = [round(train_data[:, :, :, 0].std(), 4), round(train_data[:, :, :, 1].std(
 transform_train.transforms.append(transforms.Normalize(mean, std))
 transform_test.transforms.append(transforms.Normalize(mean, std))
 
-# 打乱数据并划分数据集与验证集
+# 打乱数据并划分数据集与验证集    Различайте обучающие и тестовые наборы
 num_train = len(train_set)
 indices = list(range(num_train))
 split = int(np.floor(0.1 * num_train))
 
-# 随机打乱数据
+# 随机打乱数据    Рандомизировать данные
 np.random.shuffle(indices)
 
 train_idx, valid_idx = indices[split:], indices[:split]
