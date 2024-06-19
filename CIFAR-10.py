@@ -14,6 +14,7 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 import numpy as np
 from torchsummary import summary
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 
 # 设备配置
@@ -177,6 +178,8 @@ for epoch in range(n_epochs):
         val_loss = 0
         correct = 0
         total = 0
+        all_preds = []
+        all_labels = []
         with torch.no_grad():
             for inputs, labels in valid_loader:
                 inputs, labels = inputs.to(device), labels.to(device)
@@ -186,6 +189,8 @@ for epoch in range(n_epochs):
                 _, predicted = y_pred.max(1)
                 total += labels.size(0)
                 correct += predicted.eq(labels).sum().item()
+                all_labels.extend(labels.cpu().numpy())
+                all_preds.extend(torch.argmax(y_pred, 1).cpu().numpy())
         valid_loss = val_loss / len(valid_loader.dataset)
         valid_accuracy = 100. * correct / total
         print("Validation accuracy %.3f%%" % (valid_accuracy))
@@ -193,13 +198,20 @@ for epoch in range(n_epochs):
         valid_acc_list.append(valid_accuracy)
         return valid_loss, valid_accuracy
 
+        if epoch+1 == n_epochs:
+            cm_valid = confusion_matrix(all_labels, all_preds)
+            disp_valid = ConfusionMatrixDisplay(confusion_matrix=cm_valid, display_labels=np.arange(10))
+            disp_valid.plot(cmap=plt.cm.Blues)
+            plt.title('Validation Confusion Matrix')
+            plt.show()
 
     def test(test_loader):
         model.eval()
         test_loss = 0
         test_correct = 0
         total = 0
-
+        all_preds = []
+        all_labels = []
         with torch.no_grad():
             for images, labels in test_loader:
                 images = images.to(device)
@@ -210,6 +222,8 @@ for epoch in range(n_epochs):
                 _, predicted = outputs.max(1)
                 total += labels.size(0)
                 test_correct += predicted.eq(labels).sum().item()
+                all_preds.extend(predicted.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
         test_loss /= len(test_loader.dataset)
         test_accuracy = 100. * test_correct / total
         print("Test accuracy %.3f%%" % (test_accuracy))
@@ -217,6 +231,12 @@ for epoch in range(n_epochs):
         test_acc_list.append(test_accuracy)
         return test_loss, test_accuracy
 
+        if epoch+1 == n_epochs:
+            cm_test = confusion_matrix(all_labels, all_preds)
+            disp_test = ConfusionMatrixDisplay(confusion_matrix=cm_test, display_labels=np.arange(10))
+            disp_test.plot(cmap=plt.cm.Blues)
+            plt.title('Test Confusion Matrix')
+            plt.show()
 
     train_loss, train_acc = training(train_loader)
     val_loss, val_acc = validation(valid_loader)
